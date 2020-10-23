@@ -1,61 +1,61 @@
 ---
-- name: Add ZooKeeper group
+- name: "zookeeper | {{ ansible_hostname }} | Add ZooKeeper group"
   group:
     name: zookeeper
     state: present
 
-- name: Add ZooKeeper user
+- name: "zookeeper | {{ ansible_hostname }} | Add ZooKeeper user"
   user:
     name: zookeeper
-    group: zookeeper
+    group: "{{ zookeeper_group }}"
 
-- name: Create ZooKeeper dir
+- name: "zookeeper | {{ ansible_hostname }} | Create ZooKeeper dir"
   file:
     path: "{{ zookeeper_dir }}"
     state: directory
     mode: '0755'
-    owner: zookeeper
-    group: zookeeper
+    owner: "{{ zookeeper_user }}"
+    group: "{{ zookeeper_group }}"
 
-- name: Create ZooKeeper version dir
+- name: "zookeeper | {{ ansible_hostname }} | Create ZooKeeper version dir"
   file:
     path: "{{ zookeeper_dir }}/{{ zookeeper_version }}"
     state: directory
     mode: '0755'
-    owner: zookeeper
-    group: zookeeper
+    owner: "{{ zookeeper_user }}"
+    group: "{{ zookeeper_group }}"
   register: zookeeper_version_dir
 
-- name: Download and extract ZooKeeper
+- name: "zookeeper | {{ ansible_hostname }} | Download and extract ZooKeeper"
   unarchive:
-    src: "https://mirror.synyx.de/apache/zookeeper/zookeeper-{{ zookeeper_version }}/apache-zookeeper-{{ zookeeper_version }}-bin.tar.gz"
+    src: "{{ zookeeper_download_url }}"
     dest: "{{ zookeeper_dir }}/{{ zookeeper_version }}"
     remote_src: yes
     extra_opts: [--strip-components=1]
   when: zookeeper_version_dir.changed
 
-- name: Create ZooKeeper data dir
+- name: "zookeeper | {{ ansible_hostname }} | Create ZooKeeper data dir"
   file:
     path: "{{ zookeeper_data_dir }}"
     state: directory
-    owner: zookeeper
-    group: zookeeper
+    owner: "{{ zookeeper_user }}"
+    group: "{{ zookeeper_group }}"
     mode: '0755'
 
-- name: Create ZooKeeper log dir
+- name: "zookeeper | {{ ansible_hostname }} | Create ZooKeeper log dir"
   file:
     path: "{{ zookeeper_log_dir }}"
     state: directory
-    owner: zookeeper
-    group: zookeeper
+    owner: "{{ zookeeper_user }}"
+    group: "{{ zookeeper_group }}"
     mode: '0755'
 
-- name: Create ZooKeeper service
+- name: "zookeeper | {{ ansible_hostname }} | Create ZooKeeper service"
   template:
     src: zookeeper.service.j2
     dest: "/etc/systemd/system/zookeeper.service"
     mode: '0644'
-    owner: zookeeper
-    group: zookeeper
+    owner: "{{ zookeeper_user }}"
+    group: "{{ zookeeper_group }}"
   register: zookeeper_service
   notify: Update ZooKeeper

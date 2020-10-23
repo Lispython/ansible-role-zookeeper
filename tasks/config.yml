@@ -1,83 +1,76 @@
 ---
-- name: Convert ZooKeeper members to dict
-  set_fact:
-    zookeeper_member_dict: "{{ zookeeper_member_dict | default([]) + [{'key': index + 1, 'value': item}] }}"
-  with_items:
-    - "{{ zookeeper_members }}"
-  loop_control:
-    index_var: index
-  run_once: yes
 
-- name: Set ZooKeeper member index
+- name: "zookeeper | {{ ansible_hostname }} | Set ZooKeeper member index"
+  when: zookeeper_member_index is not defined
   set_fact:
-    zookeeper_member_index: "{{ zookeeper_member_dict | selectattr('value', 'equalto', zookeeper_member_id) | map(attribute='key') | first }}"
+    zookeeper_member_index: "{{ zookeeper_members|get_member_index(zookeeper_member_id) }}"
 
-- name: Create ZooKeeper config dir
+- name: "zookeeper | {{ ansible_hostname }} | Create ZooKeeper config dir"
   file:
     path: "{{ zookeeper_conf_dir }}"
     state: directory
     mode: '0755'
-    owner: zookeeper
-    group: zookeeper
+    owner: "{{ zookeeper_user }}"
+    group: "{{ zookeeper_group }}"
 
-- name: Create ZooKeeper config file
+- name: "zookeeper | {{ ansible_hostname }} | Create ZooKeeper config file"
   template:
     src: zookeeper.cfg.j2
     dest: "{{ zookeeper_conf_dir }}/zookeeper.cfg"
     mode: '0644'
-    owner: zookeeper
-    group: zookeeper
+    owner: "{{ zookeeper_user }}"
+    group: "{{ zookeeper_group }}"
   notify: Restart ZooKeeper
 
-- name: Create ZooKeeper dynamic config file
+- name: "zookeeper | {{ ansible_hostname }} | Create ZooKeeper dynamic config file"
   template:
     src: zookeeper.dynamic.cfg.j2
     dest: "{{ zookeeper_conf_dir }}/zookeeper.dynamic.cfg"
     mode: '0644'
-    owner: zookeeper
-    group: zookeeper
+    owner: "{{ zookeeper_user }}"
+    group: "{{ zookeeper_group }}"
 
-- name: Create JAAS config file
+- name: "zookeeper | {{ ansible_hostname }} | Create JAAS config file"
   template:
     src: jaas.cfg.j2
     dest: "{{ zookeeper_conf_dir }}/jaas.cfg"
     mode: '0600'
-    owner: zookeeper
-    group: zookeeper
+    owner: "{{ zookeeper_user }}"
+    group: "{{ zookeeper_group }}"
   notify: Restart ZooKeeper
 
-- name: Create myid file
+- name: "zookeeper | {{ ansible_hostname }} | Create myid file"
   copy:
     dest: "{{ zookeeper_data_dir }}/myid"
     content: "{{ zookeeper_member_index }}"
     mode: '0644'
-    owner: zookeeper
-    group: zookeeper
+    owner: "{{ zookeeper_user }}"
+    group: "{{ zookeeper_group }}"
   notify: Restart ZooKeeper
 
-- name: Create env file
+- name: "zookeeper | {{ ansible_hostname }} | Create env file"
   template:
     src: zookeeper.env.j2
     dest: "{{ zookeeper_conf_dir }}/zookeeper.env"
     mode: '0644'
-    owner: zookeeper
-    group: zookeeper
+    owner: "{{ zookeeper_user }}"
+    group: "{{ zookeeper_group }}"
   notify: Restart ZooKeeper
 
-- name: Create JMX password file
+- name: "zookeeper | {{ ansible_hostname }} | Create JMX password file"
   template:
     src: jmxremote.password.j2
     dest: "{{ zookeeper_conf_dir }}/jmxremote.password"
     mode: '0600'
-    owner: zookeeper
-    group: zookeeper
+    owner: "{{ zookeeper_user }}"
+    group: "{{ zookeeper_group }}"
   notify: Restart ZooKeeper
 
-- name: Create JMX access file
+- name: "zookeeper | {{ ansible_hostname }} | Create JMX access file"
   template:
     src: jmxremote.access.j2
     dest: "{{ zookeeper_conf_dir }}/jmxremote.access"
     mode: '0600'
-    owner: zookeeper
-    group: zookeeper
+    owner: "{{ zookeeper_user }}"
+    group: "{{ zookeeper_group }}"
   notify: Restart ZooKeeper
